@@ -687,6 +687,34 @@ declare module "node:test" {
          * Identical to the `throws` function from the `node:assert` module, but bound to the test context.
          */
         throws: typeof import("node:assert").throws;
+        /**
+         * This function implements assertions for snapshot testing.
+         * ```js
+         * test('snapshot test with default serialization', (t) => {
+         *   t.assert.snapshot({ value1: 1, value2: 2 });
+         * });
+         *
+         * test('snapshot test with custom serialization', (t) => {
+         *   t.assert.snapshot({ value3: 3, value4: 4 }, {
+         *     serializers: [(value) => JSON.stringify(value)]
+         *   });
+         * });
+         * ```
+         * @since v22.3.0
+         * @experimental
+         */
+        snapshot(value: any, options?: AssertSnapshotOptions): void;
+    }
+    interface AssertSnapshotOptions {
+        /**
+         * An array of synchronous functions used to serialize `value` into a string.
+         * `value` is passed as the only argument to the first serializer function.
+         * The return value of each serializer is passed as input to the next serializer.
+         * Once all serializers have run, the resulting value is coerced to a string.
+         *
+         * If no serializers are provided, the test runner's default serializers are used.
+         */
+        serializers: readonly ((value: any) => any)[] | undefined;
     }
     /**
      * An instance of `SuiteContext` is passed to each suite function in order to

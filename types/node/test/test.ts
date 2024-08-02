@@ -128,7 +128,7 @@ test(undefined, undefined, t => {
     t.before(() => {});
 });
 
-// Test the test context assert functions exist.
+// Test the top-level node:assert functions exist in the test context.
 test(t => {
     // $ExpectType TestContextAssert
     t.assert;
@@ -151,6 +151,14 @@ test(t => {
     t.assert.rejects;
     t.assert.strictEqual;
     t.assert.throws;
+});
+
+// Test snapshot assertion.
+test(t => {
+    // $ExpectType void
+    t.assert.snapshot({ value1: true, value2: false });
+    // $ExpectType void
+    t.assert.snapshot({ value3: 'foo', value4: 'bar' }, { serializers: [value => JSON.stringify(value)] });
 });
 
 // Test the subtest approach.
