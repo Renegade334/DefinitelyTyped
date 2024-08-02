@@ -102,7 +102,7 @@ test((t, cb) => {
     cb({ x: "anything" });
 });
 
-// Test the context's methods
+// Test the context's methods/properties
 test(undefined, undefined, t => {
     // $ExpectType void
     t.diagnostic("tap diagnostic");
@@ -126,6 +126,15 @@ test(undefined, undefined, t => {
     t.beforeEach(() => {});
     // $ExpectType void
     t.before(() => {});
+
+    // $ExpectType string
+    t.name;
+    // $ExpectType string
+    t.fullName;
+    // $ExpectType AbortSignal
+    t.signal;
+    // $ExpectType MockTracker
+    t.mock;
 });
 
 // Test the top-level node:assert functions exist in the test context.
