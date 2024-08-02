@@ -73,6 +73,7 @@ test("blank options", {});
 test("options with values", {
     concurrency: 1,
     only: true,
+    plan: 2,
     signal: new AbortController().signal,
     skip: "reason for skip",
     timeout: Infinity,
@@ -105,6 +106,8 @@ test(undefined, undefined, t => {
     // $ExpectType void
     t.diagnostic("tap diagnostic");
     // $ExpectType void
+    t.plan(2);
+    // $ExpectType void
     t.runOnly(true);
     // $ExpectType void
     t.skip("skip reason");
@@ -122,6 +125,31 @@ test(undefined, undefined, t => {
     t.beforeEach(() => {});
     // $ExpectType void
     t.before(() => {});
+});
+
+// Test the test context assert functions exist.
+test(t => {
+    // $ExpectType TestContextAssert
+    t.assert;
+
+    // dtslint won't resolve typeof import(...), so just check everything exists
+    t.assert.deepEqual;
+    t.assert.deepStrictEqual;
+    t.assert.doesNotMatch;
+    t.assert.doesNotReject;
+    t.assert.doesNotThrow;
+    t.assert.equal;
+    t.assert.fail;
+    t.assert.ifError;
+    t.assert.match;
+    t.assert.notDeepEqual;
+    t.assert.notDeepStrictEqual;
+    t.assert.notEqual;
+    t.assert.notStrictEqual;
+    t.assert.ok;
+    t.assert.rejects;
+    t.assert.strictEqual;
+    t.assert.throws;
 });
 
 // Test the subtest approach.
