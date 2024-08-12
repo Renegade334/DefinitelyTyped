@@ -1305,10 +1305,10 @@ declare module "node:test" {
         run,
         skip,
         suite,
-        SuiteContext,
+        type SuiteContext,
         test,
         test as default,
-        TestContext,
+        type TestContext,
         todo,
     };
 }
