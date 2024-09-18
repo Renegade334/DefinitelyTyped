@@ -1,5 +1,5 @@
-import Onfleet = require("@onfleet/node-onfleet");
-import Webhook = require("@onfleet/node-onfleet/Resources/Webhooks");
+import Onfleet from "@onfleet/node-onfleet";
+import type { Payload } from "@onfleet/node-onfleet/lib/Resources/Webhooks";
 
 const bottleneckOptions = {
     LIMITER_RESERVOIR: 20,
@@ -301,7 +301,7 @@ async function testWorkers() {
 }
 
 function testWebhooks() {
-    const taskCreatedPayload: Webhook.Payload.TaskCreatedPayload = {
+    const taskCreatedPayload: Payload.TaskCreatedPayload = {
         actionContext: {
             id: "vjw*RDMKDljKVDve1Vtcplgu",
             type: "ADMIN",
@@ -398,7 +398,7 @@ function testWebhooks() {
         workerId: null,
     };
 
-    const taskUpdatedPayload: Webhook.Payload.TaskUpdatedPayload = {
+    const taskUpdatedPayload: Payload.TaskUpdatedPayload = {
         taskId: "w7CcGpzsMnEiUg1AqgxQbPE~",
         workerId: "ZxcnkJi~79nonYaMTQ960Mg2",
         actionContext: {
@@ -528,7 +528,7 @@ function testWebhooks() {
         time: 1627329522593,
     };
 
-    const taskUpdatedWithUnavailablePhotoIdsPayload: Webhook.Payload.TaskUpdatedPayload = {
+    const taskUpdatedWithUnavailablePhotoIdsPayload: Payload.TaskUpdatedPayload = {
         taskId: "w7CcGpzsMnEiUg1AqgxQbPE~",
         actionContext: {
             type: "WORKER",
@@ -630,7 +630,7 @@ function testWebhooks() {
         time: 1627329772583,
     };
 
-    const taskUpdatedWithUploadedPhotoAndSignatureIdPayload: Webhook.Payload.TaskUpdatedPayload = {
+    const taskUpdatedWithUploadedPhotoAndSignatureIdPayload: Payload.TaskUpdatedPayload = {
         taskId: "w7CcGpzsMnEiUg1AqgxQbPE~",
         actionContext: {
             type: "WORKER",
@@ -726,7 +726,7 @@ function testWebhooks() {
         time: 1627329772583,
     };
 
-    const taskClonedPayload: Webhook.Payload.TaskClonedPayload = {
+    const taskClonedPayload: Payload.TaskClonedPayload = {
         actionContext: {
             id: "vjw*RDMKDljKVDve1Vtcplgu",
             type: "ADMIN",
@@ -824,7 +824,7 @@ function testWebhooks() {
         workerId: null,
     };
 
-    const taskAssignedPayload: Webhook.Payload.TaskAssignedPayload = {
+    const taskAssignedPayload: Payload.TaskAssignedPayload = {
         actionContext: {
             id: "vjw*RDMKDljKVDve1Vtcplgu",
             type: "ADMIN",
@@ -964,7 +964,7 @@ function testWebhooks() {
         workerId: "COwfwH~Zogm1LXIZYbPlLAyw",
     };
 
-    const taskUnassignedPayload: Webhook.Payload.TaskUnassignedPayload = {
+    const taskUnassignedPayload: Payload.TaskUnassignedPayload = {
         actionContext: {
             id: "vjw*RDMKDljKVDve1Vtcplgu",
             type: "ADMIN",
@@ -1061,7 +1061,7 @@ function testWebhooks() {
         workerId: null,
     };
 
-    const taskDeletedPayload: Webhook.Payload.TaskDeletedPayload = {
+    const taskDeletedPayload: Payload.TaskDeletedPayload = {
         actionContext: {
             id: "vjw*RDMKDljKVDve1Vtcplgu",
             type: "ADMIN",
@@ -1156,7 +1156,7 @@ function testWebhooks() {
         workerId: null,
     };
 
-    const taskStartedPayload: Webhook.Payload.TaskStartedPayload = {
+    const taskStartedPayload: Payload.TaskStartedPayload = {
         actionContext: {
             id: "COwfwH~Zogm1LXIZYbPlLAyw",
             type: "WORKER",
@@ -1252,7 +1252,7 @@ function testWebhooks() {
         workerId: "COwfwH~Zogm1LXIZYbPlLAyw",
     };
 
-    const taskFailedPayload: Webhook.Payload.TaskFailedPayload = {
+    const taskFailedPayload: Payload.TaskFailedPayload = {
         actionContext: {
             id: "COwfwH~Zogm1LXIZYbPlLAyw",
             type: "WORKER",
@@ -1355,7 +1355,7 @@ function testWebhooks() {
         workerId: "COwfwH~Zogm1LXIZYbPlLAyw",
     };
 
-    const taskCompletedPayload: Webhook.Payload.TaskCompletedPayload = {
+    const taskCompletedPayload: Payload.TaskCompletedPayload = {
         actionContext: {
             id: "ZxcnkJi~79nonYaMTQ960Mg2",
             type: "WORKER",
@@ -1477,7 +1477,7 @@ function testWebhooks() {
         workerId: "ZxcnkJi~79nonYaMTQ960Mg2",
     };
 
-    const taskDelayedPayload: Webhook.Payload.TaskDelayedPayload = {
+    const taskDelayedPayload: Payload.TaskDelayedPayload = {
         actionContext: null,
         adminId: null,
         data: {
@@ -1571,7 +1571,7 @@ function testWebhooks() {
         workerId: null,
     };
 
-    const taskETAPayload: Webhook.Payload.TaskETAPayload = {
+    const taskETAPayload: Payload.TaskETAPayload = {
         taskId: "hV2lAmBLs~76oXR4jYBjQbgY",
         etaSeconds: 298.2603148875159,
         triggerId: 1,
@@ -1664,7 +1664,7 @@ function testWebhooks() {
         time: 1615505708224,
     };
 
-    const taskArrivalPayload: Webhook.Payload.TaskArrivalPayload = {
+    const taskArrivalPayload: Payload.TaskArrivalPayload = {
         taskId: "hV2lAmBLs~76oXR4jYBjQbgY",
         distance: 134.6184612940922,
         triggerId: 2,
@@ -1757,7 +1757,7 @@ function testWebhooks() {
         time: 1615505822024,
     };
 
-    const workerCreatedPayload: Webhook.Payload.WorkerCreatedPayload = {
+    const workerCreatedPayload: Payload.WorkerCreatedPayload = {
         adminId: "i18uIpm5NNNw6nBL8QMW1JM7",
         workerId: "sccpOkp3SassNmJxHjm1UFc5",
         actionContext: {
@@ -1802,7 +1802,7 @@ function testWebhooks() {
         time: 1623274200840,
     };
 
-    const workerDeletedPayload: Webhook.Payload.WorkerDeletedPayload = {
+    const workerDeletedPayload: Payload.WorkerDeletedPayload = {
         actionContext: {
             type: "ADMIN",
             id: "i18uIpm5NNNw6nBL8QMW1JM7",
@@ -1847,7 +1847,7 @@ function testWebhooks() {
         time: 1623274403564,
     };
 
-    const workerDutyPayload: Webhook.Payload.WorkerDutyPayload = {
+    const workerDutyPayload: Payload.WorkerDutyPayload = {
         actionContext: null,
         adminId: null,
         data: {
@@ -1900,7 +1900,7 @@ function testWebhooks() {
         workerId: "COwfwH~Zogm1LXIZYbPlLAyw",
     };
 
-    const smsRecipientOptOutPayload: Webhook.Payload.SMSRecipientOptOutPayload = {
+    const smsRecipientOptOutPayload: Payload.SMSRecipientOptOutPayload = {
         recipient: {
             id: "7LecFRKJw7ExfyhBsi9h0NXW",
             name: "Joe Smith",
@@ -1918,7 +1918,7 @@ function testWebhooks() {
         time: 1632432776640,
     };
 
-    const autoDispatchJobCompletedPayload: Webhook.Payload.AutoDispatchJobCompletedPayload = {
+    const autoDispatchJobCompletedPayload: Payload.AutoDispatchJobCompletedPayload = {
         actionContext: {
             apiKeyScopeId: "34522acbaf4558bee7474e594aa2ba0c",
             id: "vjw*RDMKDljKVDve1Vtcplgu",
@@ -2048,7 +2048,7 @@ function testWebhooks() {
         workerId: null,
     };
 
-    const taskBatchCreateJobCompletedPayload: Webhook.Payload.TaskBatchCreateJobCompletedPayload = {
+    const taskBatchCreateJobCompletedPayload: Payload.TaskBatchCreateJobCompletedPayload = {
         jobId: "C1i7NK46Jtxod2WIkZDGf1~1",
         status: "completedWithErrors",
         tasksReceived: 3,

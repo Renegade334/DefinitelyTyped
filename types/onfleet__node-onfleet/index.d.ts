@@ -1,3 +1,3 @@
-import Onfleet = require("./onfleet");
+import onfleet from "./lib/onfleet";
 
-export = Onfleet;
+export default onfleet;
