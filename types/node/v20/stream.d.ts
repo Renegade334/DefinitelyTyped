@@ -21,7 +21,7 @@ declare module "stream" {
     import { Abortable, EventEmitter } from "node:events";
     import { Blob as NodeBlob } from "node:buffer";
     import * as streamPromises from "node:stream/promises";
-    import * as streamWeb from "node:stream/web";
+    import { ReadableStream as WebReadableStream, WritableStream as WebWritableStream } from "node:stream/web";
 
     global {
         // Note that NodeJS.{Readable|Writable}Stream are NOT the same as the global/web-compatible {Readable|Writable}Stream interfaces.
@@ -91,7 +91,7 @@ declare module "stream" {
          * Returns whether the stream has been read from or cancelled.
          * @since v16.8.0
          */
-        static isDisturbed(stream: Readable | NodeJS.ReadableStream): boolean;
+        static isDisturbed(stream: NodeJS.ReadableStream | WebReadableStream): boolean;
         /**
          * Returns whether the stream was destroyed or errored before emitting `'end'`.
          * @since v16.8.0
@@ -1002,7 +1002,7 @@ declare module "stream" {
              * @experimental
              */
             static fromWeb(
-                readableStream: streamWeb.ReadableStream,
+                readableStream: WebReadableStream,
                 options?: Pick<ReadableOptions, "encoding" | "highWaterMark" | "objectMode" | "signal">,
             ): Readable;
             /**
@@ -1010,7 +1010,7 @@ declare module "stream" {
              * @since v17.0.0
              * @experimental
              */
-            static toWeb(streamReadable: Readable): streamWeb.ReadableStream;
+            static toWeb(streamReadable: Readable): WebReadableStream;
         }
         interface WritableOptions extends StreamOptions<Writable> {
             decodeStrings?: boolean | undefined;
@@ -1041,7 +1041,7 @@ declare module "stream" {
              * @experimental
              */
             static fromWeb(
-                writableStream: streamWeb.WritableStream,
+                writableStream: WebWritableStream,
                 options?: Pick<WritableOptions, "decodeStrings" | "highWaterMark" | "objectMode" | "signal">,
             ): Writable;
             /**
@@ -1049,7 +1049,7 @@ declare module "stream" {
              * @since v17.0.0
              * @experimental
              */
-            static toWeb(streamWritable: Writable): streamWeb.WritableStream;
+            static toWeb(streamWritable: Writable): WebWritableStream;
         }
         interface DuplexOptions extends ReadableOptions, WritableOptions {
             allowHalfOpen?: boolean | undefined;
@@ -1161,8 +1161,8 @@ declare module "stream" {
              * @experimental
              */
             static toWeb(streamDuplex: Duplex): {
-                readable: streamWeb.ReadableStream;
-                writable: streamWeb.WritableStream;
+                readable: WebReadableStream;
+                writable: WebWritableStream;
             };
             /**
              * A utility method for creating a `Duplex` from a web `ReadableStream` and `WritableStream`.
@@ -1171,8 +1171,8 @@ declare module "stream" {
              */
             static fromWeb(
                 duplexStream: {
-                    readable: streamWeb.ReadableStream;
-                    writable: streamWeb.WritableStream;
+                    readable: WebReadableStream;
+                    writable: WebWritableStream;
                 },
                 options?: Pick<
                     DuplexOptions,
@@ -1718,13 +1718,20 @@ declare module "stream" {
          * @since v17.3.0, v16.14.0
          * @experimental
          */
-        function isErrored(stream: Readable | Writable | NodeJS.ReadableStream | NodeJS.WritableStream): boolean;
+        function isErrored(
+            stream:
+                | NodeJS.ReadableStream
+                | NodeJS.WritableStream
+                | NodeJS.ReadWriteStream
+                | WebReadableStream
+                | WebWritableStream,
+        ): boolean;
         /**
          * Returns whether the stream is readable.
          * @since v17.4.0, v16.14.0
          * @experimental
          */
-        function isReadable(stream: Readable | NodeJS.ReadableStream): boolean;
+        function isReadable(stream: NodeJS.ReadableStream | WebReadableStream): boolean;
         const promises: typeof streamPromises;
     }
     export = internal;

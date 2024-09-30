@@ -20,7 +20,7 @@ declare module "stream" {
     import { Abortable, EventEmitter } from "node:events";
     import { Blob as NodeBlob } from "node:buffer";
     import * as streamPromises from "node:stream/promises";
-    import * as streamWeb from "node:stream/web";
+    import { ReadableStream as WebReadableStream, WritableStream as WebWritableStream } from "node:stream/web";
 
     global {
         // Note that NodeJS.{Readable|Writable}Stream are NOT the same as the global/web-compatible {Readable|Writable}Stream interfaces.
@@ -102,20 +102,20 @@ declare module "stream" {
              * @experimental
              */
             static fromWeb(
-                readableStream: streamWeb.ReadableStream,
+                readableStream: WebReadableStream,
                 options?: Pick<ReadableOptions, "encoding" | "highWaterMark" | "objectMode" | "signal">,
             ): Readable;
             /**
              * Returns whether the stream has been read from or cancelled.
              * @since v16.8.0
              */
-            static isDisturbed(stream: Readable | NodeJS.ReadableStream): boolean;
+            static isDisturbed(stream: NodeJS.ReadableStream | WebReadableStream): boolean;
             /**
              * A utility method for creating a web `ReadableStream` from a `Readable`.
              * @since v17.0.0
              * @experimental
              */
-            static toWeb(streamReadable: Readable): streamWeb.ReadableStream;
+            static toWeb(streamReadable: Readable): WebReadableStream;
             /**
              * Returns whether the stream was destroyed or errored before emitting `'end'`.
              * @since v16.8.0
@@ -739,7 +739,7 @@ declare module "stream" {
              * @experimental
              */
             static fromWeb(
-                writableStream: streamWeb.WritableStream,
+                writableStream: WebWritableStream,
                 options?: Pick<WritableOptions, "decodeStrings" | "highWaterMark" | "objectMode" | "signal">,
             ): Writable;
             /**
@@ -747,7 +747,7 @@ declare module "stream" {
              * @since v17.0.0
              * @experimental
              */
-            static toWeb(streamWritable: Writable): streamWeb.WritableStream;
+            static toWeb(streamWritable: Writable): WebWritableStream;
             /**
              * Is `true` if it is safe to call `writable.write()`, which means
              * the stream has not been destroyed, errored or ended.

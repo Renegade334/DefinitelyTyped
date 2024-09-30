@@ -11,7 +11,7 @@
 declare module "fs/promises" {
     import { Abortable } from "node:events";
     import { Stream } from "node:stream";
-    import { ReadableStream } from "node:stream/web";
+    import { ReadableStream as WebReadableStream } from "node:stream/web";
     import {
         BigIntStats,
         BigIntStatsFs,
@@ -263,7 +263,7 @@ declare module "fs/promises" {
          * @since v17.0.0
          * @experimental
          */
-        readableWebStream(options?: ReadableWebStreamOptions): ReadableStream;
+        readableWebStream(options?: ReadableWebStreamOptions): WebReadableStream;
         /**
          * Asynchronously reads the entire contents of a file.
          *
