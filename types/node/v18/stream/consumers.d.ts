@@ -1,3 +1,20 @@
+/**
+ * The utility consumer functions provide common options for consuming
+ * streams.
+ *
+ * They are accessed using:
+ * ```js
+ * import {
+ *   arrayBuffer,
+ *   blob,
+ *   buffer,
+ *   json,
+ *   text,
+ * } from 'node:stream/consumers';
+ * ```
+ * @see [source](https://github.com/nodejs/node/blob/v22.x/lib/stream/consumers.js)
+ * @since v16.7.0
+ */
 declare module "stream/consumers" {
     import { Blob as NodeBlob } from "node:buffer";
     import { Readable } from "node:stream";

@@ -20,7 +20,6 @@ declare module "stream" {
     import { Abortable, EventEmitter } from "node:events";
     import { Blob as NodeBlob } from "node:buffer";
     import * as streamPromises from "node:stream/promises";
-    import * as streamConsumers from "node:stream/consumers";
     import * as streamWeb from "node:stream/web";
 
     global {
@@ -1751,7 +1750,6 @@ declare module "stream" {
         function isReadable(stream: Readable | NodeJS.ReadableStream): boolean;
 
         const promises: typeof streamPromises;
-        const consumers: typeof streamConsumers;
     }
     export = internal;
 }
