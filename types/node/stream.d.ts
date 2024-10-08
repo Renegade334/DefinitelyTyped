@@ -131,16 +131,51 @@ declare module "stream" {
             end?: boolean | undefined;
         }
         interface StreamOptions<T extends Stream> extends Abortable {
-            emitClose?: boolean | undefined;
+            /**
+             * The maximum number of bytes to store
+             * in the internal buffer before ceasing to read from the underlying resource.
+             */
             highWaterMark?: number | undefined;
+            /**
+             * Whether this stream should behave
+             * as a stream of objects. Meaning that `stream.read(n)` returns
+             * a single value instead of a `Buffer` of size `n`.
+             * @default false
+             */
             objectMode?: boolean | undefined;
-            construct?(this: T, callback: (error?: Error | null) => void): void;
-            destroy?(this: T, error: Error | null, callback: (error?: Error | null) => void): void;
+            /**
+             * Whether or not the stream should emit `'close'`
+             * after it has been destroyed.
+             * @since v10.0.0
+             * @default true
+             */
+            emitClose?: boolean | undefined;
+            /**
+             * Implementation for the `stream._destroy()` method.
+             */
+            destroy?: ((this: T, err: Error | null, callback: (error?: Error | null) => void) => void) | undefined;
+            /**
+             * Implementation for the `stream._construct()` method.
+             */
+            construct?: ((this: T, callback: (error?: Error | null) => void) => void) | undefined;
+            /**
+             * Whether this stream should automatically call
+             * `.destroy()` on itself after ending.
+             * @default true
+             * @since v11.2.0, v10.16.0
+             */
             autoDestroy?: boolean | undefined;
         }
         interface ReadableOptions<T extends Readable = Readable> extends StreamOptions<T> {
+            /**
+             * If specified, then buffers will be decoded to
+             * strings using the specified encoding.
+             */
             encoding?: BufferEncoding | undefined;
-            read?(this: Readable, size: number): void;
+            /**
+             * Implementation for the `stream._read()` method.
+             */
+            read?: ((this: T, size: number) => void) | undefined;
         }
         interface ArrayOptions {
             /**
@@ -155,7 +190,7 @@ declare module "stream" {
          * @since v0.9.4
          */
         class Readable extends Stream implements NodeJS.ReadableStream {
-            constructor(opts?: ReadableOptions);
+            constructor(options?: ReadableOptions);
             /**
              * A utility method for creating a `Readable` from a web `ReadableStream`.
              * @since v17.0.0
@@ -782,29 +817,56 @@ declare module "stream" {
             [Symbol.asyncDispose](): Promise<void>;
         }
         interface WritableOptions<T extends Writable = Writable> extends StreamOptions<T> {
+            /**
+             * Whether to encode `string`s passed to
+             * `stream.write()` to `Buffer`s (with the encoding
+             * specified in the `stream.write()` call) before passing
+             * them to `stream._write()`. Other types of data are not
+             * converted (i.e. `Buffer`s are not decoded into `string`s). Setting to
+             * false will prevent `string`s from being converted.
+             * @default true
+             */
             decodeStrings?: boolean | undefined;
+            /**
+             * The default encoding that is used when no
+             * encoding is specified as an argument to `stream.write()`.
+             * @default 'utf-8'
+             */
             defaultEncoding?: BufferEncoding | undefined;
-            write?(
-                this: T,
-                chunk: any,
-                encoding: BufferEncoding,
-                callback: (error?: Error | null) => void,
-            ): void;
-            writev?(
-                this: T,
-                chunks: Array<{
-                    chunk: any;
-                    encoding: BufferEncoding;
-                }>,
-                callback: (error?: Error | null) => void,
-            ): void;
-            final?(this: T, callback: (error?: Error | null) => void): void;
+            /**
+             * Implementation for the `stream._write()` method.
+             */
+            write?:
+                | ((
+                    this: T,
+                    chunk: any,
+                    encoding: BufferEncoding,
+                    callback: (error?: Error | null) => void,
+                ) => void)
+                | undefined;
+            /**
+             * Implementation for the `stream._writev()` method.
+             */
+            writev?:
+                | ((
+                    this: T,
+                    chunks: Array<{
+                        chunk: any;
+                        encoding: BufferEncoding;
+                    }>,
+                    callback: (error?: Error | null) => void,
+                ) => void)
+                | undefined;
+            /**
+             * Implementation for the `stream._final()` method.
+             */
+            final?: ((this: T, callback: (error?: Error | null) => void) => void) | undefined;
         }
         /**
          * @since v0.9.4
          */
         class Writable extends Stream implements NodeJS.WritableStream {
-            constructor(opts?: WritableOptions);
+            constructor(options?: WritableOptions);
             /**
              * A utility method for creating a `Writable` from a web `WritableStream`.
              * @since v17.0.0
@@ -1107,12 +1169,46 @@ declare module "stream" {
             removeListener(event: string | symbol, listener: (...args: any[]) => void): this;
         }
         interface DuplexOptions<T extends Duplex = Duplex> extends ReadableOptions<T>, WritableOptions<T> {
+            /**
+             * If set to `false`, then the stream will
+             * automatically end the writable side when the readable side ends.
+             * @default true
+             */
             allowHalfOpen?: boolean | undefined;
+            /**
+             * Sets whether the `Duplex` should be readable.
+             * @default true
+             */
+            readable?: boolean | undefined;
+            /**
+             * Sets whether the `Duplex` should be writable.
+             * @default true
+             */
+            writable?: boolean | undefined;
+            /**
+             * Sets `objectMode` for readable side of the
+             * stream. Has no effect if `objectMode` is `true`.
+             * @default false
+             */
             readableObjectMode?: boolean | undefined;
+            /**
+             * Sets `objectMode` for writable side of the
+             * stream. Has no effect if `objectMode` is `true`.
+             * @default false
+             */
             writableObjectMode?: boolean | undefined;
+            /**
+             * Sets `highWaterMark` for the readable side
+             * of the stream. Has no effect if `highWaterMark` is provided.
+             * @since v8.4.0
+             */
             readableHighWaterMark?: number | undefined;
+            /**
+             * Sets `highWaterMark` for the readable side
+             * of the stream. Has no effect if `highWaterMark` is provided.
+             * @since v8.4.0
+             */
             writableHighWaterMark?: number | undefined;
-            writableCorked?: number | undefined;
         }
         /**
          * Duplex streams are streams that implement both the `Readable` and `Writable` interfaces.
@@ -1125,7 +1221,7 @@ declare module "stream" {
          * @since v0.9.4
          */
         class Duplex extends Stream implements Readable, Writable {
-            constructor(opts?: DuplexOptions);
+            constructor(options?: DuplexOptions);
             readonly writable: boolean;
             readonly writableEnded: boolean;
             readonly writableFinished: boolean;
@@ -1341,11 +1437,19 @@ declare module "stream" {
          * @since v22.6.0
          */
         function duplexPair(options?: DuplexOptions): [Duplex, Duplex];
-        type TransformCallback = (error?: Error | null, data?: any) => void;
         interface TransformOptions<T extends Transform = Transform> extends DuplexOptions<T> {
-            transform?(this: T, chunk: any, encoding: BufferEncoding, callback: TransformCallback): void;
-            flush?(this: T, callback: TransformCallback): void;
+            /**
+             * Implementation for the `stream._transform()` method.
+             */
+            transform?:
+                | ((this: T, chunk: any, encoding: BufferEncoding, callback: TransformCallback) => void)
+                | undefined;
+            /**
+             * Implementation for the `stream._flush()` method.
+             */
+            flush?: ((this: T, callback: TransformCallback) => void) | undefined;
         }
+        type TransformCallback = (error?: Error | null, data?: any) => void;
         /**
          * Transform streams are `Duplex` streams where the output is in some way
          * related to the input. Like all `Duplex` streams, `Transform` streams
@@ -1358,7 +1462,7 @@ declare module "stream" {
          * @since v0.9.4
          */
         class Transform extends Duplex {
-            constructor(opts?: TransformOptions);
+            constructor(options?: TransformOptions);
             _transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback): void;
             _flush(callback: TransformCallback): void;
         }
