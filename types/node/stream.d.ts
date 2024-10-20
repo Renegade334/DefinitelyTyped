@@ -192,6 +192,13 @@ declare module "stream" {
         class Readable extends Stream implements NodeJS.ReadableStream {
             constructor(options?: ReadableOptions);
             /**
+             * A utility method for creating Readable Streams out of iterators.
+             * @since v12.3.0, v10.17.0
+             * @param iterable Object implementing the `Symbol.asyncIterator` or `Symbol.iterator` iterable protocol. Emits an 'error' event if a null value is passed.
+             * @param options Options provided to `new stream.Readable([options])`. By default, `Readable.from()` will set `options.objectMode` to `true`, unless this is explicitly opted out by setting `options.objectMode` to `false`.
+             */
+            static from(iterable: Iterable<any> | AsyncIterable<any>, options?: ReadableOptions): Readable;
+            /**
              * A utility method for creating a `Readable` from a web `ReadableStream`.
              * @since v17.0.0
              * @experimental
@@ -201,91 +208,77 @@ declare module "stream" {
                 options?: Pick<ReadableOptions, "encoding" | "highWaterMark" | "objectMode" | "signal">,
             ): Readable;
             /**
+             * Returns whether the stream has been read from or cancelled.
+             * @since v16.8.0
+             */
+            static isDisturbed(stream: NodeJS.ReadableStream | WebReadableStream): boolean;
+            /**
              * A utility method for creating a web `ReadableStream` from a `Readable`.
              * @since v17.0.0
              * @experimental
              */
             static toWeb(streamReadable: Readable): WebReadableStream;
             /**
-             * A utility method for creating Readable Streams out of iterators.
-             * @since v12.3.0, v10.17.0
-             * @param iterable Object implementing the `Symbol.asyncIterator` or `Symbol.iterator` iterable protocol. Emits an 'error' event if a null value is passed.
-             * @param options Options provided to `new stream.Readable([options])`. By default, `Readable.from()` will set `options.objectMode` to `true`, unless this is explicitly opted out by setting `options.objectMode` to `false`.
-             */
-            static from(iterable: Iterable<any> | AsyncIterable<any>, options?: ReadableOptions): Readable;
-            /**
-             * Returns whether the stream has been read from or cancelled.
-             * @since v16.8.0
-             */
-            static isDisturbed(stream: NodeJS.ReadableStream | WebReadableStream): boolean;
-            /**
-             * Returns whether the stream was destroyed or errored before emitting `'end'`.
-             * @since v16.8.0
-             * @experimental
-             */
-            readonly readableAborted: boolean;
-            /**
-             * Is `true` if it is safe to call {@link read}, which means
-             * the stream has not been destroyed or emitted `'error'` or `'end'`.
-             * @since v11.4.0
-             */
-            readable: boolean;
-            /**
-             * Returns whether `'data'` has been emitted.
-             * @since v16.7.0, v14.18.0
-             * @experimental
-             */
-            readonly readableDidRead: boolean;
-            /**
-             * Getter for the property `encoding` of a given `Readable` stream. The `encoding` property can be set using the {@link setEncoding} method.
-             * @since v12.7.0
-             */
-            readonly readableEncoding: BufferEncoding | null;
-            /**
-             * Becomes `true` when [`'end'`](https://nodejs.org/docs/latest-v22.x/api/stream.html#event-end) event is emitted.
-             * @since v12.9.0
-             */
-            readonly readableEnded: boolean;
-            /**
-             * This property reflects the current state of a `Readable` stream as described
-             * in the [Three states](https://nodejs.org/docs/latest-v22.x/api/stream.html#three-states) section.
-             * @since v9.4.0
-             */
-            readonly readableFlowing: boolean | null;
-            /**
-             * Returns the value of `highWaterMark` passed when creating this `Readable`.
-             * @since v9.3.0
-             */
-            readonly readableHighWaterMark: number;
-            /**
-             * This property contains the number of bytes (or objects) in the queue
-             * ready to be read. The value provides introspection data regarding
-             * the status of the `highWaterMark`.
-             * @since v9.4.0
-             */
-            readonly readableLength: number;
-            /**
-             * Getter for the property `objectMode` of a given `Readable` stream.
-             * @since v12.3.0
-             */
-            readonly readableObjectMode: boolean;
-            /**
-             * Is `true` after `readable.destroy()` has been called.
+             * Destroy the stream. Optionally emit an `'error'` event, and emit a `'close'` event (unless `emitClose` is set to `false`). After this call, the readable
+             * stream will release any internal resources and subsequent calls to `push()` will be ignored.
+             *
+             * Once `destroy()` has been called any further calls will be a no-op and no
+             * further errors except from `_destroy()` may be emitted as `'error'`.
+             *
+             * Implementors should not override this method, but instead implement `readable._destroy()`.
              * @since v8.0.0
+             * @param error Error which will be passed as payload in `'error'` event
              */
-            destroyed: boolean;
+            destroy(error?: Error): this;
             /**
              * Is `true` after `'close'` has been emitted.
              * @since v18.0.0
              */
             readonly closed: boolean;
             /**
-             * Returns error if the stream has been destroyed with an error.
-             * @since v18.0.0
+             * Is `true` after `readable.destroy()` has been called.
+             * @since v8.0.0
              */
-            readonly errored: Error | null;
-            _construct?(callback: (error?: Error | null) => void): void;
-            _read(size: number): void;
+            destroyed: boolean;
+            /**
+             * The `readable.isPaused()` method returns the current operating state of the `Readable`.
+             * This is used primarily by the mechanism that underlies the `readable.pipe()` method.
+             * In most typical cases, there will be no reason to use this method directly.
+             *
+             * ```js
+             * const readable = new stream.Readable();
+             *
+             * readable.isPaused(); // === false
+             * readable.pause();
+             * readable.isPaused(); // === true
+             * readable.resume();
+             * readable.isPaused(); // === false
+             * ```
+             * @since v0.11.14
+             */
+            isPaused(): boolean;
+            /**
+             * The `readable.pause()` method will cause a stream in flowing mode to stop
+             * emitting `'data'` events, switching out of flowing mode. Any data that
+             * becomes available will remain in the internal buffer.
+             *
+             * ```js
+             * const readable = getReadableStreamSomehow();
+             * readable.on('data', (chunk) => {
+             *   console.log(`Received ${chunk.length} bytes of data.`);
+             *   readable.pause();
+             *   console.log('There will be no additional data for 1 second.');
+             *   setTimeout(() => {
+             *     console.log('Now data will start flowing again.');
+             *     readable.resume();
+             *   }, 1000);
+             * });
+             * ```
+             *
+             * The `readable.pause()` method has no effect if there is a `'readable'` event listener.
+             * @since v0.9.4
+             */
+            pause(): this;
             /**
              * The `readable.read()` method reads data out of the internal buffer and
              * returns it. If no data is available to be read, `null` is returned. By default,
@@ -365,6 +358,81 @@ declare module "stream" {
              */
             read(size?: number): any;
             /**
+             * Is `true` if it is safe to call {@link read}, which means
+             * the stream has not been destroyed or emitted `'error'` or `'end'`.
+             * @since v11.4.0
+             */
+            readable: boolean;
+            /**
+             * Returns whether the stream was destroyed or errored before emitting `'end'`.
+             * @since v16.8.0
+             * @experimental
+             */
+            readonly readableAborted: boolean;
+            /**
+             * Returns whether `'data'` has been emitted.
+             * @since v16.7.0, v14.18.0
+             * @experimental
+             */
+            readonly readableDidRead: boolean;
+            /**
+             * Getter for the property `encoding` of a given `Readable` stream. The `encoding` property can be set using the {@link setEncoding} method.
+             * @since v12.7.0
+             */
+            readonly readableEncoding: BufferEncoding | null;
+            /**
+             * Becomes `true` when [`'end'`](https://nodejs.org/docs/latest-v22.x/api/stream.html#event-end) event is emitted.
+             * @since v12.9.0
+             */
+            readonly readableEnded: boolean;
+            /**
+             * Returns error if the stream has been destroyed with an error.
+             * @since v18.0.0
+             */
+            readonly errored: Error | null;
+            /**
+             * This property reflects the current state of a `Readable` stream as described
+             * in the [Three states](https://nodejs.org/docs/latest-v22.x/api/stream.html#three-states) section.
+             * @since v9.4.0
+             */
+            readonly readableFlowing: boolean | null;
+            /**
+             * Returns the value of `highWaterMark` passed when creating this `Readable`.
+             * @since v9.3.0
+             */
+            readonly readableHighWaterMark: number;
+            /**
+             * This property contains the number of bytes (or objects) in the queue
+             * ready to be read. The value provides introspection data regarding
+             * the status of the `highWaterMark`.
+             * @since v9.4.0
+             */
+            readonly readableLength: number;
+            /**
+             * Getter for the property `objectMode` of a given `Readable` stream.
+             * @since v12.3.0
+             */
+            readonly readableObjectMode: boolean;
+            /**
+             * The `readable.resume()` method causes an explicitly paused `Readable` stream to
+             * resume emitting `'data'` events, switching the stream into flowing mode.
+             *
+             * The `readable.resume()` method can be used to fully consume the data from a
+             * stream without actually processing any of that data:
+             *
+             * ```js
+             * getReadableStreamSomehow()
+             *   .resume()
+             *   .on('end', () => {
+             *     console.log('Reached the end, but did not read anything.');
+             *   });
+             * ```
+             *
+             * The `readable.resume()` method has no effect if there is a `'readable'` event listener.
+             * @since v0.9.4
+             */
+            resume(): this;
+            /**
              * The `readable.setEncoding()` method sets the character encoding for
              * data read from the `Readable` stream.
              *
@@ -389,64 +457,6 @@ declare module "stream" {
              * @param encoding The encoding to use.
              */
             setEncoding(encoding: BufferEncoding): this;
-            /**
-             * The `readable.pause()` method will cause a stream in flowing mode to stop
-             * emitting `'data'` events, switching out of flowing mode. Any data that
-             * becomes available will remain in the internal buffer.
-             *
-             * ```js
-             * const readable = getReadableStreamSomehow();
-             * readable.on('data', (chunk) => {
-             *   console.log(`Received ${chunk.length} bytes of data.`);
-             *   readable.pause();
-             *   console.log('There will be no additional data for 1 second.');
-             *   setTimeout(() => {
-             *     console.log('Now data will start flowing again.');
-             *     readable.resume();
-             *   }, 1000);
-             * });
-             * ```
-             *
-             * The `readable.pause()` method has no effect if there is a `'readable'` event listener.
-             * @since v0.9.4
-             */
-            pause(): this;
-            /**
-             * The `readable.resume()` method causes an explicitly paused `Readable` stream to
-             * resume emitting `'data'` events, switching the stream into flowing mode.
-             *
-             * The `readable.resume()` method can be used to fully consume the data from a
-             * stream without actually processing any of that data:
-             *
-             * ```js
-             * getReadableStreamSomehow()
-             *   .resume()
-             *   .on('end', () => {
-             *     console.log('Reached the end, but did not read anything.');
-             *   });
-             * ```
-             *
-             * The `readable.resume()` method has no effect if there is a `'readable'` event listener.
-             * @since v0.9.4
-             */
-            resume(): this;
-            /**
-             * The `readable.isPaused()` method returns the current operating state of the `Readable`.
-             * This is used primarily by the mechanism that underlies the `readable.pipe()` method.
-             * In most typical cases, there will be no reason to use this method directly.
-             *
-             * ```js
-             * const readable = new stream.Readable();
-             *
-             * readable.isPaused(); // === false
-             * readable.pause();
-             * readable.isPaused(); // === true
-             * readable.resume();
-             * readable.isPaused(); // === false
-             * ```
-             * @since v0.11.14
-             */
-            isPaused(): boolean;
             /**
              * The `readable.unpipe()` method detaches a `Writable` stream previously attached
              * using the {@link pipe} method.
@@ -566,7 +576,12 @@ declare module "stream" {
              * @param stream An "old style" readable stream
              */
             wrap(stream: NodeJS.ReadableStream): this;
-            push(chunk: any, encoding?: BufferEncoding): boolean;
+            [Symbol.asyncIterator](): AsyncIterableIterator<any>;
+            /**
+             * Calls `readable.destroy()` with an `AbortError` and returns a promise that fulfills when the stream is finished.
+             * @since v20.4.0
+             */
+            [Symbol.asyncDispose](): Promise<void>;
             compose<T extends NodeJS.ReadableStream>(
                 stream: T | ComposeFnParam | Iterable<T> | AsyncIterable<T>,
                 options?: { signal: AbortSignal },
@@ -729,19 +744,10 @@ declare module "stream" {
                 initial: T,
                 options?: Pick<ArrayOptions, "signal">,
             ): Promise<T>;
+            _construct?(callback: (error?: Error | null) => void): void;
+            _read(size: number): void;
             _destroy(error: Error | null, callback: (error?: Error | null) => void): void;
-            /**
-             * Destroy the stream. Optionally emit an `'error'` event, and emit a `'close'` event (unless `emitClose` is set to `false`). After this call, the readable
-             * stream will release any internal resources and subsequent calls to `push()` will be ignored.
-             *
-             * Once `destroy()` has been called any further calls will be a no-op and no
-             * further errors except from `_destroy()` may be emitted as `'error'`.
-             *
-             * Implementors should not override this method, but instead implement `readable._destroy()`.
-             * @since v8.0.0
-             * @param error Error which will be passed as payload in `'error'` event
-             */
-            destroy(error?: Error): this;
+            push(chunk: any, encoding?: BufferEncoding): boolean;
             /**
              * Event emitter
              * The defined events on documents including:
@@ -809,12 +815,6 @@ declare module "stream" {
             removeListener(event: "readable", listener: () => void): this;
             removeListener(event: "resume", listener: () => void): this;
             removeListener(event: string | symbol, listener: (...args: any[]) => void): this;
-            [Symbol.asyncIterator](): AsyncIterableIterator<any>;
-            /**
-             * Calls `readable.destroy()` with an `AbortError` and returns a promise that fulfills when the stream is finished.
-             * @since v20.4.0
-             */
-            [Symbol.asyncDispose](): Promise<void>;
         }
         interface WritableOptions<T extends Writable = Writable> extends StreamOptions<T> {
             /**
@@ -883,6 +883,113 @@ declare module "stream" {
              */
             static toWeb(streamWritable: Writable): WebWritableStream;
             /**
+             * The `writable.cork()` method forces all written data to be buffered in memory.
+             * The buffered data will be flushed when either the {@link uncork} or {@link end} methods are called.
+             *
+             * The primary intent of `writable.cork()` is to accommodate a situation in which
+             * several small chunks are written to the stream in rapid succession. Instead of
+             * immediately forwarding them to the underlying destination, `writable.cork()` buffers all the chunks until `writable.uncork()` is called, which will pass them
+             * all to `writable._writev()`, if present. This prevents a head-of-line blocking
+             * situation where data is being buffered while waiting for the first small chunk
+             * to be processed. However, use of `writable.cork()` without implementing `writable._writev()` may have an adverse effect on throughput.
+             *
+             * See also: `writable.uncork()`, `writable._writev()`.
+             * @since v0.11.2
+             */
+            cork(): void;
+            /**
+             * Destroy the stream. Optionally emit an `'error'` event, and emit a `'close'` event (unless `emitClose` is set to `false`). After this call, the writable
+             * stream has ended and subsequent calls to `write()` or `end()` will result in
+             * an `ERR_STREAM_DESTROYED` error.
+             * This is a destructive and immediate way to destroy a stream. Previous calls to `write()` may not have drained, and may trigger an `ERR_STREAM_DESTROYED` error.
+             * Use `end()` instead of destroy if data should flush before close, or wait for
+             * the `'drain'` event before destroying the stream.
+             *
+             * Once `destroy()` has been called any further calls will be a no-op and no
+             * further errors except from `_destroy()` may be emitted as `'error'`.
+             *
+             * Implementors should not override this method,
+             * but instead implement `writable._destroy()`.
+             * @since v8.0.0
+             * @param error Optional, an error to emit with `'error'` event.
+             */
+            destroy(error?: Error): this;
+            /**
+             * Is `true` after `'close'` has been emitted.
+             * @since v18.0.0
+             */
+            readonly closed: boolean;
+            /**
+             * Is `true` after `writable.destroy()` has been called.
+             * @since v8.0.0
+             */
+            destroyed: boolean;
+            /**
+             * Calling the `writable.end()` method signals that no more data will be written
+             * to the `Writable`. The optional `chunk` and `encoding` arguments allow one
+             * final additional chunk of data to be written immediately before closing the
+             * stream.
+             *
+             * Calling the {@link write} method after calling {@link end} will raise an error.
+             *
+             * ```js
+             * // Write 'hello, ' and then end with 'world!'.
+             * import fs from 'node:fs';
+             * const file = fs.createWriteStream('example.txt');
+             * file.write('hello, ');
+             * file.end('world!');
+             * // Writing more now is not allowed!
+             * ```
+             * @since v0.9.4
+             * @param chunk Optional data to write. For streams not operating in object mode, `chunk` must be a {string}, {Buffer},
+             * {TypedArray} or {DataView}. For object mode streams, `chunk` may be any JavaScript value other than `null`.
+             * @param encoding The encoding if `chunk` is a string
+             * @param callback Callback for when the stream is finished.
+             */
+            end(cb?: () => void): this;
+            end(chunk: any, cb?: () => void): this;
+            end(chunk: any, encoding: BufferEncoding, cb?: () => void): this;
+            /**
+             * The `writable.setDefaultEncoding()` method sets the default `encoding` for a `Writable` stream.
+             * @since v0.11.15
+             * @param encoding The new default encoding
+             */
+            setDefaultEncoding(encoding: BufferEncoding): this;
+            /**
+             * The `writable.uncork()` method flushes all data buffered since {@link cork} was called.
+             *
+             * When using `writable.cork()` and `writable.uncork()` to manage the buffering
+             * of writes to a stream, defer calls to `writable.uncork()` using `process.nextTick()`. Doing so allows batching of all `writable.write()` calls that occur within a given Node.js event
+             * loop phase.
+             *
+             * ```js
+             * stream.cork();
+             * stream.write('some ');
+             * stream.write('data ');
+             * process.nextTick(() => stream.uncork());
+             * ```
+             *
+             * If the `writable.cork()` method is called multiple times on a stream, the
+             * same number of calls to `writable.uncork()` must be called to flush the buffered
+             * data.
+             *
+             * ```js
+             * stream.cork();
+             * stream.write('some ');
+             * stream.cork();
+             * stream.write('data ');
+             * process.nextTick(() => {
+             *   stream.uncork();
+             *   // The data will not be flushed until uncork() is called a second time.
+             *   stream.uncork();
+             * });
+             * ```
+             *
+             * See also: `writable.cork()`.
+             * @since v0.11.2
+             */
+            uncork(): void;
+            /**
              * Is `true` if it is safe to call `writable.write()`, which means
              * the stream has not been destroyed, errored, or ended.
              * @since v11.4.0
@@ -894,6 +1001,17 @@ declare module "stream" {
              * @since v12.9.0
              */
             readonly writableEnded: boolean;
+            /**
+             * Number of times `writable.uncork()` needs to be
+             * called in order to fully uncork the stream.
+             * @since v13.2.0, v12.16.0
+             */
+            readonly writableCorked: number;
+            /**
+             * Returns error if the stream has been destroyed with an error.
+             * @since v18.0.0
+             */
+            readonly errored: Error | null;
             /**
              * Is set to `true` immediately before the `'finish'` event is emitted.
              * @since v12.6.0
@@ -912,47 +1030,15 @@ declare module "stream" {
              */
             readonly writableLength: number;
             /**
-             * Getter for the property `objectMode` of a given `Writable` stream.
-             * @since v12.3.0
-             */
-            readonly writableObjectMode: boolean;
-            /**
-             * Number of times `writable.uncork()` needs to be
-             * called in order to fully uncork the stream.
-             * @since v13.2.0, v12.16.0
-             */
-            readonly writableCorked: number;
-            /**
-             * Is `true` after `writable.destroy()` has been called.
-             * @since v8.0.0
-             */
-            destroyed: boolean;
-            /**
-             * Is `true` after `'close'` has been emitted.
-             * @since v18.0.0
-             */
-            readonly closed: boolean;
-            /**
-             * Returns error if the stream has been destroyed with an error.
-             * @since v18.0.0
-             */
-            readonly errored: Error | null;
-            /**
              * Is `true` if the stream's buffer has been full and stream will emit `'drain'`.
              * @since v15.2.0, v14.17.0
              */
             readonly writableNeedDrain: boolean;
-            _write(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null) => void): void;
-            _writev?(
-                chunks: Array<{
-                    chunk: any;
-                    encoding: BufferEncoding;
-                }>,
-                callback: (error?: Error | null) => void,
-            ): void;
-            _construct?(callback: (error?: Error | null) => void): void;
-            _destroy(error: Error | null, callback: (error?: Error | null) => void): void;
-            _final(callback: (error?: Error | null) => void): void;
+            /**
+             * Getter for the property `objectMode` of a given `Writable` stream.
+             * @since v12.3.0
+             */
+            readonly writableObjectMode: boolean;
             /**
              * The `writable.write()` method writes some data to the stream, and calls the
              * supplied `callback` once the data has been fully handled. If an error
@@ -1011,103 +1097,17 @@ declare module "stream" {
              */
             write(chunk: any, callback?: (error: Error | null | undefined) => void): boolean;
             write(chunk: any, encoding: BufferEncoding, callback?: (error: Error | null | undefined) => void): boolean;
-            /**
-             * The `writable.setDefaultEncoding()` method sets the default `encoding` for a `Writable` stream.
-             * @since v0.11.15
-             * @param encoding The new default encoding
-             */
-            setDefaultEncoding(encoding: BufferEncoding): this;
-            /**
-             * Calling the `writable.end()` method signals that no more data will be written
-             * to the `Writable`. The optional `chunk` and `encoding` arguments allow one
-             * final additional chunk of data to be written immediately before closing the
-             * stream.
-             *
-             * Calling the {@link write} method after calling {@link end} will raise an error.
-             *
-             * ```js
-             * // Write 'hello, ' and then end with 'world!'.
-             * import fs from 'node:fs';
-             * const file = fs.createWriteStream('example.txt');
-             * file.write('hello, ');
-             * file.end('world!');
-             * // Writing more now is not allowed!
-             * ```
-             * @since v0.9.4
-             * @param chunk Optional data to write. For streams not operating in object mode, `chunk` must be a {string}, {Buffer},
-             * {TypedArray} or {DataView}. For object mode streams, `chunk` may be any JavaScript value other than `null`.
-             * @param encoding The encoding if `chunk` is a string
-             * @param callback Callback for when the stream is finished.
-             */
-            end(cb?: () => void): this;
-            end(chunk: any, cb?: () => void): this;
-            end(chunk: any, encoding: BufferEncoding, cb?: () => void): this;
-            /**
-             * The `writable.cork()` method forces all written data to be buffered in memory.
-             * The buffered data will be flushed when either the {@link uncork} or {@link end} methods are called.
-             *
-             * The primary intent of `writable.cork()` is to accommodate a situation in which
-             * several small chunks are written to the stream in rapid succession. Instead of
-             * immediately forwarding them to the underlying destination, `writable.cork()` buffers all the chunks until `writable.uncork()` is called, which will pass them
-             * all to `writable._writev()`, if present. This prevents a head-of-line blocking
-             * situation where data is being buffered while waiting for the first small chunk
-             * to be processed. However, use of `writable.cork()` without implementing `writable._writev()` may have an adverse effect on throughput.
-             *
-             * See also: `writable.uncork()`, `writable._writev()`.
-             * @since v0.11.2
-             */
-            cork(): void;
-            /**
-             * The `writable.uncork()` method flushes all data buffered since {@link cork} was called.
-             *
-             * When using `writable.cork()` and `writable.uncork()` to manage the buffering
-             * of writes to a stream, defer calls to `writable.uncork()` using `process.nextTick()`. Doing so allows batching of all `writable.write()` calls that occur within a given Node.js event
-             * loop phase.
-             *
-             * ```js
-             * stream.cork();
-             * stream.write('some ');
-             * stream.write('data ');
-             * process.nextTick(() => stream.uncork());
-             * ```
-             *
-             * If the `writable.cork()` method is called multiple times on a stream, the
-             * same number of calls to `writable.uncork()` must be called to flush the buffered
-             * data.
-             *
-             * ```js
-             * stream.cork();
-             * stream.write('some ');
-             * stream.cork();
-             * stream.write('data ');
-             * process.nextTick(() => {
-             *   stream.uncork();
-             *   // The data will not be flushed until uncork() is called a second time.
-             *   stream.uncork();
-             * });
-             * ```
-             *
-             * See also: `writable.cork()`.
-             * @since v0.11.2
-             */
-            uncork(): void;
-            /**
-             * Destroy the stream. Optionally emit an `'error'` event, and emit a `'close'` event (unless `emitClose` is set to `false`). After this call, the writable
-             * stream has ended and subsequent calls to `write()` or `end()` will result in
-             * an `ERR_STREAM_DESTROYED` error.
-             * This is a destructive and immediate way to destroy a stream. Previous calls to `write()` may not have drained, and may trigger an `ERR_STREAM_DESTROYED` error.
-             * Use `end()` instead of destroy if data should flush before close, or wait for
-             * the `'drain'` event before destroying the stream.
-             *
-             * Once `destroy()` has been called any further calls will be a no-op and no
-             * further errors except from `_destroy()` may be emitted as `'error'`.
-             *
-             * Implementors should not override this method,
-             * but instead implement `writable._destroy()`.
-             * @since v8.0.0
-             * @param error Optional, an error to emit with `'error'` event.
-             */
-            destroy(error?: Error): this;
+            _construct?(callback: (error?: Error | null) => void): void;
+            _write(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null) => void): void;
+            _writev?(
+                chunks: Array<{
+                    chunk: any;
+                    encoding: BufferEncoding;
+                }>,
+                callback: (error?: Error | null) => void,
+            ): void;
+            _destroy(error: Error | null, callback: (error?: Error | null) => void): void;
+            _final(callback: (error?: Error | null) => void): void;
             /**
              * Event emitter
              * The defined events on documents including:
@@ -1222,26 +1222,6 @@ declare module "stream" {
          */
         class Duplex extends Stream implements Readable, Writable {
             constructor(options?: DuplexOptions);
-            readonly writable: boolean;
-            readonly writableEnded: boolean;
-            readonly writableFinished: boolean;
-            readonly writableHighWaterMark: number;
-            readonly writableLength: number;
-            readonly writableObjectMode: boolean;
-            readonly writableCorked: number;
-            readonly writableNeedDrain: boolean;
-            readonly closed: boolean;
-            readonly errored: Error | null;
-            /**
-             * If `false` then the stream will automatically end the writable side when the
-             * readable side ends. Set initially by the `allowHalfOpen` constructor option,
-             * which defaults to `true`.
-             *
-             * This can be changed manually to change the half-open behavior of an existing
-             * `Duplex` stream instance, but must be changed before the `'end'` event is emitted.
-             * @since v0.9.4
-             */
-            allowHalfOpen: boolean;
             /**
              * A utility method for creating duplex streams.
              *
@@ -1275,6 +1255,50 @@ declare module "stream" {
                     | Promise<any>
                     | Object,
             ): Duplex;
+            /**
+             * A utility method for creating a `Duplex` from a web `ReadableStream` and `WritableStream`.
+             * @since v17.0.0
+             * @experimental
+             */
+            static fromWeb(
+                duplexStream: {
+                    readable: WebReadableStream;
+                    writable: WebWritableStream;
+                },
+                options?: Pick<
+                    DuplexOptions,
+                    "allowHalfOpen" | "decodeStrings" | "encoding" | "highWaterMark" | "objectMode" | "signal"
+                >,
+            ): Duplex;
+            /**
+             * A utility method for creating a web `ReadableStream` and `WritableStream` from a `Duplex`.
+             * @since v17.0.0
+             * @experimental
+             */
+            static toWeb(streamDuplex: Duplex): {
+                readable: WebReadableStream;
+                writable: WebWritableStream;
+            };
+            /**
+             * If `false` then the stream will automatically end the writable side when the
+             * readable side ends. Set initially by the `allowHalfOpen` constructor option,
+             * which defaults to `true`.
+             *
+             * This can be changed manually to change the half-open behavior of an existing
+             * `Duplex` stream instance, but must be changed before the `'end'` event is emitted.
+             * @since v0.9.4
+             */
+            allowHalfOpen: boolean;
+            readonly writable: boolean;
+            readonly writableEnded: boolean;
+            readonly writableFinished: boolean;
+            readonly writableHighWaterMark: number;
+            readonly writableLength: number;
+            readonly writableObjectMode: boolean;
+            readonly writableCorked: number;
+            readonly writableNeedDrain: boolean;
+            readonly closed: boolean;
+            readonly errored: Error | null;
             _write(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null) => void): void;
             _writev?(
                 chunks: Array<{
@@ -1293,30 +1317,6 @@ declare module "stream" {
             end(chunk: any, encoding?: BufferEncoding, cb?: () => void): this;
             cork(): void;
             uncork(): void;
-            /**
-             * A utility method for creating a web `ReadableStream` and `WritableStream` from a `Duplex`.
-             * @since v17.0.0
-             * @experimental
-             */
-            static toWeb(streamDuplex: Duplex): {
-                readable: WebReadableStream;
-                writable: WebWritableStream;
-            };
-            /**
-             * A utility method for creating a `Duplex` from a web `ReadableStream` and `WritableStream`.
-             * @since v17.0.0
-             * @experimental
-             */
-            static fromWeb(
-                duplexStream: {
-                    readable: WebReadableStream;
-                    writable: WebWritableStream;
-                },
-                options?: Pick<
-                    DuplexOptions,
-                    "allowHalfOpen" | "decodeStrings" | "encoding" | "highWaterMark" | "objectMode" | "signal"
-                >,
-            ): Duplex;
             /**
              * Event emitter
              * The defined events on documents including:
@@ -1418,25 +1418,6 @@ declare module "stream" {
             removeListener(event: string | symbol, listener: (...args: any[]) => void): this;
         }
         interface Duplex extends Readable, Writable {}
-        /**
-         * The utility function `duplexPair` returns an Array with two items,
-         * each being a `Duplex` stream connected to the other side:
-         *
-         * ```js
-         * const [ sideA, sideB ] = duplexPair();
-         * ```
-         *
-         * Whatever is written to one stream is made readable on the other. It provides
-         * behavior analogous to a network connection, where the data written by the client
-         * becomes readable by the server, and vice-versa.
-         *
-         * The Duplex streams are symmetrical; one or the other may be used without any
-         * difference in behavior.
-         * @param options A value to pass to both {@link Duplex} constructors,
-         * to set options such as buffering.
-         * @since v22.6.0
-         */
-        function duplexPair(options?: DuplexOptions): [Duplex, Duplex];
         interface TransformOptions<T extends Transform = Transform> extends DuplexOptions<T> {
             /**
              * Implementation for the `stream._transform()` method.
@@ -1463,8 +1444,8 @@ declare module "stream" {
          */
         class Transform extends Duplex {
             constructor(options?: TransformOptions);
-            _transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback): void;
             _flush(callback: TransformCallback): void;
+            _transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback): void;
         }
         /**
          * The `stream.PassThrough` class is a trivial implementation of a `Transform` stream that simply passes the input bytes across to the output. Its purpose is
@@ -1472,97 +1453,24 @@ declare module "stream" {
          */
         class PassThrough extends Transform {}
         /**
-         * A stream to attach a signal to.
-         *
-         * Attaches an AbortSignal to a readable or writeable stream. This lets code
-         * control stream destruction using an `AbortController`.
-         *
-         * Calling `abort` on the `AbortController` corresponding to the passed `AbortSignal` will behave the same way as calling `.destroy(new AbortError())` on the
-         * stream, and `controller.error(new AbortError())` for webstreams.
+         * The utility function `duplexPair` returns an Array with two items,
+         * each being a `Duplex` stream connected to the other side:
          *
          * ```js
-         * import fs from 'node:fs';
-         *
-         * const controller = new AbortController();
-         * const read = addAbortSignal(
-         *   controller.signal,
-         *   fs.createReadStream(('object.json')),
-         * );
-         * // Later, abort the operation closing the stream
-         * controller.abort();
+         * const [ sideA, sideB ] = duplexPair();
          * ```
          *
-         * Or using an `AbortSignal` with a readable stream as an async iterable:
+         * Whatever is written to one stream is made readable on the other. It provides
+         * behavior analogous to a network connection, where the data written by the client
+         * becomes readable by the server, and vice-versa.
          *
-         * ```js
-         * const controller = new AbortController();
-         * setTimeout(() => controller.abort(), 10_000); // set a timeout
-         * const stream = addAbortSignal(
-         *   controller.signal,
-         *   fs.createReadStream(('object.json')),
-         * );
-         * (async () => {
-         *   try {
-         *     for await (const chunk of stream) {
-         *       await process(chunk);
-         *     }
-         *   } catch (e) {
-         *     if (e.name === 'AbortError') {
-         *       // The operation was cancelled
-         *     } else {
-         *       throw e;
-         *     }
-         *   }
-         * })();
-         * ```
-         *
-         * Or using an `AbortSignal` with a ReadableStream:
-         *
-         * ```js
-         * const controller = new AbortController();
-         * const rs = new ReadableStream({
-         *   start(controller) {
-         *     controller.enqueue('hello');
-         *     controller.enqueue('world');
-         *     controller.close();
-         *   },
-         * });
-         *
-         * addAbortSignal(controller.signal, rs);
-         *
-         * finished(rs, (err) => {
-         *   if (err) {
-         *     if (err.name === 'AbortError') {
-         *       // The operation was cancelled
-         *     }
-         *   }
-         * });
-         *
-         * const reader = rs.getReader();
-         *
-         * reader.read().then(({ value, done }) => {
-         *   console.log(value); // hello
-         *   console.log(done); // false
-         *   controller.abort();
-         * });
-         * ```
-         * @since v15.4.0
-         * @param signal A signal representing possible cancellation
-         * @param stream A stream to attach a signal to.
+         * The Duplex streams are symmetrical; one or the other may be used without any
+         * difference in behavior.
+         * @param options A value to pass to both {@link Duplex} constructors,
+         * to set options such as buffering.
+         * @since v22.6.0
          */
-        function addAbortSignal<T extends Stream>(signal: AbortSignal, stream: T): T;
-        /**
-         * Returns the default highWaterMark used by streams.
-         * Defaults to `65536` (64 KiB), or `16` for `objectMode`.
-         * @since v19.9.0
-         */
-        function getDefaultHighWaterMark(objectMode: boolean): number;
-        /**
-         * Sets the default highWaterMark used by streams.
-         * @since v19.9.0
-         * @param value highWaterMark value
-         */
-        function setDefaultHighWaterMark(objectMode: boolean, value: number): void;
+        function duplexPair(options?: DuplexOptions): [Duplex, Duplex];
         interface FinishedOptions extends Abortable {
             error?: boolean | undefined;
             readable?: boolean | undefined;
@@ -1855,6 +1763,98 @@ declare module "stream" {
                 ...streams: Array<NodeJS.ReadWriteStream | NodeJS.WritableStream | PipelineOptions>
             ): Promise<void>;
         }
+        /**
+         * A stream to attach a signal to.
+         *
+         * Attaches an AbortSignal to a readable or writeable stream. This lets code
+         * control stream destruction using an `AbortController`.
+         *
+         * Calling `abort` on the `AbortController` corresponding to the passed `AbortSignal` will behave the same way as calling `.destroy(new AbortError())` on the
+         * stream, and `controller.error(new AbortError())` for webstreams.
+         *
+         * ```js
+         * import fs from 'node:fs';
+         *
+         * const controller = new AbortController();
+         * const read = addAbortSignal(
+         *   controller.signal,
+         *   fs.createReadStream(('object.json')),
+         * );
+         * // Later, abort the operation closing the stream
+         * controller.abort();
+         * ```
+         *
+         * Or using an `AbortSignal` with a readable stream as an async iterable:
+         *
+         * ```js
+         * const controller = new AbortController();
+         * setTimeout(() => controller.abort(), 10_000); // set a timeout
+         * const stream = addAbortSignal(
+         *   controller.signal,
+         *   fs.createReadStream(('object.json')),
+         * );
+         * (async () => {
+         *   try {
+         *     for await (const chunk of stream) {
+         *       await process(chunk);
+         *     }
+         *   } catch (e) {
+         *     if (e.name === 'AbortError') {
+         *       // The operation was cancelled
+         *     } else {
+         *       throw e;
+         *     }
+         *   }
+         * })();
+         * ```
+         *
+         * Or using an `AbortSignal` with a ReadableStream:
+         *
+         * ```js
+         * const controller = new AbortController();
+         * const rs = new ReadableStream({
+         *   start(controller) {
+         *     controller.enqueue('hello');
+         *     controller.enqueue('world');
+         *     controller.close();
+         *   },
+         * });
+         *
+         * addAbortSignal(controller.signal, rs);
+         *
+         * finished(rs, (err) => {
+         *   if (err) {
+         *     if (err.name === 'AbortError') {
+         *       // The operation was cancelled
+         *     }
+         *   }
+         * });
+         *
+         * const reader = rs.getReader();
+         *
+         * reader.read().then(({ value, done }) => {
+         *   console.log(value); // hello
+         *   console.log(done); // false
+         *   controller.abort();
+         * });
+         * ```
+         * @since v15.4.0
+         * @param signal A signal representing possible cancellation
+         * @param stream A stream to attach a signal to.
+         */
+        function addAbortSignal<T extends Stream>(signal: AbortSignal, stream: T): T;
+        /**
+         * Returns the default highWaterMark used by streams.
+         * Defaults to `65536` (64 KiB), or `16` for `objectMode`.
+         * @since v19.9.0
+         */
+        function getDefaultHighWaterMark(objectMode: boolean): number;
+        /**
+         * Sets the default highWaterMark used by streams.
+         * @since v19.9.0
+         * @param value highWaterMark value
+         */
+        function setDefaultHighWaterMark(objectMode: boolean, value: number): void;
         interface Pipe {
             close(): void;
             hasRef(): boolean;
