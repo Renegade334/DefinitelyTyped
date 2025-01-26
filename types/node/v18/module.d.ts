@@ -169,9 +169,11 @@ declare module "module" {
         }
         interface ResolveFnOutput {
             /**
-             * A hint to the load hook (it might be ignored)
+             * A hint to the `load` hook (it might be ignored). It can be a
+             * module format (such as `'commonjs'` or `'module'`) or an arbitrary value like `'css'` or
+             * `'yaml'`.
              */
-            format?: ModuleFormat | null | undefined;
+            format?: string | null | undefined;
             /**
              * @deprecated Use `importAttributes` instead
              */
@@ -215,7 +217,7 @@ declare module "module" {
             /**
              * The format optionally supplied by the `resolve` hook chain
              */
-            format: ModuleFormat;
+            format: string;
             /**
              * @deprecated Use `importAttributes` instead
              */
