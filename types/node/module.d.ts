@@ -209,7 +209,7 @@ declare module "module" {
             /**
              * The format optionally supplied by the `resolve` hook chain
              */
-            format: string | ModuleFormat;
+            format: string;
             /**
              *  An object whose key-value pairs represent the assertions for the module to import
              */
