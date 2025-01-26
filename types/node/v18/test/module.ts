@@ -138,7 +138,7 @@ Module.Module === Module;
     const load: Module.LoadHook = async (url, context, nextLoad) => {
         const { format } = context;
 
-        if (format) {
+        if (format === "commonjs") {
             return {
                 format,
                 shortCircuit: true,
