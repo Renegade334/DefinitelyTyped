@@ -165,7 +165,9 @@ declare module "module" {
         }
         interface ResolveFnOutput {
             /**
-             * A hint to the load hook (it might be ignored); can be an intermediary value.
+             * A hint to the `load` hook (it might be ignored). It can be a
+             * module format (such as `'commonjs'` or `'module'`) or an arbitrary value like `'css'` or
+             * `'yaml'`.
              */
             format?: string | null | undefined;
             /**
@@ -205,7 +207,7 @@ declare module "module" {
              */
             conditions: string[];
             /**
-             * The format optionally supplied by the `resolve` hook chain (can be an intermediary value).
+             * The format optionally supplied by the `resolve` hook chain
              */
             format: string | ModuleFormat;
             /**
