@@ -1940,19 +1940,23 @@ declare module "http" {
      * Defaults to 16KB. Configurable using the `--max-http-header-size` CLI option.
      */
     const maxHeaderSize: number;
-    /**
-     * A browser-compatible implementation of [WebSocket](https://nodejs.org/docs/latest/api/http.html#websocket).
-     * @since v22.5.0
-     */
-    const WebSocket: import("undici-types").WebSocket;
-    /**
-     * @since v22.5.0
-     */
-    const CloseEvent: import("undici-types").CloseEvent;
-    /**
-     * @since v22.5.0
-     */
-    const MessageEvent: import("undici-types").MessageEvent;
+}
+declare module "http" {
+    export {
+        /**
+         * A browser-compatible implementation of [WebSocket](https://nodejs.org/docs/latest-v22.x/api/http.html#websocket).
+         * @since v22.5.0
+         */
+        WebSocket,
+        /**
+         * @since v22.5.0
+         */
+        CloseEvent,
+        /**
+         * @since v22.5.0
+         */
+        MessageEvent,
+    } from "undici-types";
 }
 declare module "node:http" {
     export * from "http";
