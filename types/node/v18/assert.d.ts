@@ -948,34 +948,34 @@ declare module "assert" {
          * @since v13.6.0, v12.16.0
          */
         function doesNotMatch(value: string, regExp: RegExp, message?: string | Error): void;
-        const strict:
-            & Omit<
-                typeof assert,
-                | "equal"
-                | "notEqual"
-                | "deepEqual"
-                | "notDeepEqual"
-                | "ok"
-                | "strictEqual"
-                | "deepStrictEqual"
-                | "ifError"
-                | "strict"
-            >
-            & {
-                (value: unknown, message?: string | Error): asserts value;
-                equal: typeof strictEqual;
-                notEqual: typeof notStrictEqual;
-                deepEqual: typeof deepStrictEqual;
-                notDeepEqual: typeof notDeepStrictEqual;
-                // Mapped types and assertion functions are incompatible?
-                // TS2775: Assertions require every name in the call target
-                // to be declared with an explicit type annotation.
-                ok: typeof ok;
-                strictEqual: typeof strictEqual;
-                deepStrictEqual: typeof deepStrictEqual;
-                ifError: typeof ifError;
-                strict: typeof strict;
+        function strict(value: unknown, message?: string | Error): asserts value;
+        namespace strict {
+            export {
+                AssertionError,
+                AssertPredicate,
+                CallTracker,
+                CallTrackerCall,
+                CallTrackerReportInformation,
+                deepStrictEqual,
+                deepStrictEqual as deepEqual,
+                doesNotMatch,
+                doesNotReject,
+                doesNotThrow,
+                fail,
+                ifError,
+                match,
+                notDeepStrictEqual,
+                notDeepStrictEqual as notDeepEqual,
+                notStrictEqual,
+                notStrictEqual as notEqual,
+                ok,
+                rejects,
+                strict,
+                strictEqual,
+                strictEqual as equal,
+                throws,
             };
+        }
     }
     export = assert;
 }

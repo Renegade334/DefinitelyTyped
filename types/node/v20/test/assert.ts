@@ -182,3 +182,8 @@ assert["fail"](true, true, "works like a charm");
     assert.deepStrictEqual(a, { b: 2 });
     a; // $ExpectType { b: number; }
 }
+
+{
+    // Check all properties of assert are present on assert/strict
+    const keys: keyof typeof assert.strict = ({} as keyof typeof assert);
+}

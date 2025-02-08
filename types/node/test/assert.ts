@@ -184,3 +184,8 @@ assert.partialDeepStrictEqual({ a: 1, b: 2, c: 3 }, { a: 1, b: 2 });
     assert.deepStrictEqual(a, { b: 2 });
     a; // $ExpectType { b: number; }
 }
+
+{
+    // Check all properties of assert are present on assert/strict
+    const keys: keyof typeof assert.strict = ({} as keyof typeof assert);
+}
