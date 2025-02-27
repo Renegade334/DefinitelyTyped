@@ -86,6 +86,10 @@ declare module "buffer" {
         | "ucs-2"
         | "latin1"
         | "binary";
+    export type WithImplicitCoercion<T> =
+        | T
+        | { valueOf(): T }
+        | (T extends string ? { [Symbol.toPrimitive](hint: "string"): T } : never);
     /**
      * Re-encodes the given `Buffer` or `Uint8Array` instance from one character
      * encoding to another. Returns a new `Buffer` instance.
@@ -256,11 +260,6 @@ declare module "buffer" {
             | "latin1"
             | "binary"
             | "hex";
-        type WithImplicitCoercion<T> =
-            | T
-            | {
-                valueOf(): T;
-            };
         /**
          * Raw data is stored in instances of the Buffer class.
          * A Buffer is similar to an array of integers but corresponds to a raw memory allocation outside the V8 heap.  A Buffer cannot be resized.
