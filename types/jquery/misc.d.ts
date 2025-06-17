@@ -7356,7 +7356,7 @@ interface SymbolConstructor {
      * A String value that is used in the creation of the default string description of an object.
      * Called by the built-in method Object.prototype.toString.
      */
-    readonly toStringTag: symbol;
+    readonly toStringTag: unique symbol;
 }
 
 declare var Symbol: SymbolConstructor;
