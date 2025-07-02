@@ -899,7 +899,7 @@ class TestReporter extends Transform {
                 break;
             }
             case "test:diagnostic": {
-                const { file, column, line, message, nesting, level} = event.data;
+                const { file, column, line, message, nesting, level } = event.data;
                 callback(null, `${message}/${nesting}/${file}/${column}/${line}/${level}`);
                 break;
             }
