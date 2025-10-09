@@ -1,0 +1,26 @@
+diff --git a/types/node/globals.d.ts b/types/node/globals.d.ts
+index af46ec15a3..9c6837d3a2 100644
+--- a/types/node/globals.d.ts
++++ b/types/node/globals.d.ts
+@@ -143,6 +143,8 @@ declare namespace NodeJS {
+         readonly [key: string]: T | undefined;
+     }
+ 
++    type PartialOptions<T> = { [K in keyof T]?: T[K] | undefined };
++
+     interface GCFunction {
+         (minor?: boolean): void;
+         (options: NodeJS.GCOptions & { execution: "async" }): Promise<void>;
+diff --git a/types/node/http.d.ts b/types/node/http.d.ts
+index fe3a0eec4a..8de1a31ee0 100644
+--- a/types/node/http.d.ts
++++ b/types/node/http.d.ts
+@@ -1452,7 +1452,7 @@ declare module "http" {
+         https_proxy?: string | undefined;
+         no_proxy?: string | undefined;
+     }
+-    interface AgentOptions extends Partial<TcpSocketConnectOpts> {
++    interface AgentOptions extends NodeJS.PartialOptions<TcpSocketConnectOpts> {
+         /**
+          * Keep sockets around in a pool to be used by other requests in the future. Default = false
+          */
